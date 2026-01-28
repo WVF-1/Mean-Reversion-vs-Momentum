@@ -1,0 +1,6 @@
+# Backtest Configuration
+backtest:
+  initial_capital: 100000
+  position_size: 1.0  # fraction of capital per trade
+  transaction_cost: 0.001  # 10 bps per trade
+  slippage: 0.0005  # 5 bps slippage

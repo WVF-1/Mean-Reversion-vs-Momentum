@@ -7,184 +7,160 @@ A stochastic simulation modeling project for uncertainty-based decision making, 
 
 This project investigates one of the most fundamental questions in quantitative finance:
 
-Do asset prices trend, or do they revert to a mean — and under what conditions does each behavior dominate?
+> **Do asset prices trend, or do they revert to a mean — and under what conditions does each behavior dominate?**
 
-We implement and compare two classic rules-based trading strategies:
-
-Mean Reversion — buy dips, sell spikes
-
-Momentum — trend-following via moving average crossovers
-
-To isolate why each strategy works (or fails), we combine:
-
-Synthetic price simulations generated from stochastic processes
-
-Real-world market data for validation
-
-All strategies are transparent, interpretable, and intentionally free of machine learning.
+We implement and compare two classic rules-based trading strategies using:
+- **Synthetic price simulations** from stochastic processes (controlled experiments)
+- **Professional backtesting framework** with realistic costs
+- **Comprehensive performance metrics** (Sharpe, drawdowns, win rates)
 
 ---
 
+## Quick Start
 
-## Objectives
+```bash
+# Run complete demo (recommended)
+python demo.py
 
-Understand how market regimes affect strategy performance
-
-Compare mean reversion vs momentum under controlled conditions
-
-Measure risk using professional metrics (Sharpe, drawdowns, volatility)
-
-Demonstrate decision-making under uncertainty
-
-Build a reusable, modular backtesting framework in Python
-
-This project is designed for entry-level quantitative finance and sets the stage for portfolio construction and risk management topics.
+# Or step-by-step:
+python -m src.sims.brownian --years 15
+python -m src.sims.ou --years 15
+jupyter notebook notebooks/02-strategy-backtests.ipynb
+```
 
 ---
 
-## Core Questions
+## What You'll Learn
 
-Do prices trend or revert?
-
-When does each strategy outperform?
-
-How do drawdowns differ across regimes?
-
-What happens when the market regime shifts mid-strategy?
+1. **Stochastic Modeling**: Generate realistic price data using GBM, OU, and regime-switching
+2. **Strategy Development**: Build transparent, rules-based trading strategies
+3. **Backtesting**: Implement professional backtesting with transaction costs
+4. **Risk Analysis**: Calculate Sharpe ratios, drawdowns, and other key metrics
+5. **Regime Dependence**: Understand why strategies work in some markets but fail in others
 
 ---
 
-## Strategies
+## Synthetic Data Engines
+
+### Geometric Brownian Motion (Trending Markets)
+```python
+dS_t = μ S_t dt + σ S_t dW_t
+```
+- **Use case**: Test momentum strategies
+- **Parameters**: μ=5% drift, σ=20% volatility
+- **Realistic feature**: Sustained directional moves
+
+### Ornstein-Uhlenbeck (Mean-Reverting Markets)
+```python
+dX_t = θ(μ - X_t)dt + σ dW_t
+```
+- **Use case**: Test mean reversion strategies  
+- **Parameters**: θ=0.10 (half-life ≈7 days)
+- **Realistic feature**: Price oscillations around mean
+
+### Regime-Switching (Realistic Markets)
+- **Two states**: Trending ↔ Range-bound
+- **Transition probabilities**: Realistic regime persistence
+- **Use case**: Stress-test both strategies under changing conditions
+
+---
+
+## Trading Strategies
+
 ### Mean Reversion
+- **Entry**: |z-score| > 2.0 (buy dips)
+- **Exit**: |z-score| < 0.5 (take profit)
+- **Stop Loss**: |z-score| > 3.0
+- **Logic**: Exploit price reversions to rolling mean
 
-Rolling mean and standard deviation
-
-Z-score–based entry and exit rules
-
-Designed for range-bound, stationary behavior
-
-### Momentum
-
-Moving average crossover rules
-
-Long exposure during persistent trends
-
-Exit when trend weakens or reverses
-
-All strategies are fully rules-based with fixed, auditable logic.
+### Momentum  
+- **Entry**: Fast MA (20) crosses above Slow MA (50)
+- **Exit**: Fast MA drops below Exit MA (10)
+- **Logic**: Capture sustained trends with adaptive exits
 
 ---
 
-## Stochastic Price Simulations
+## Key Results
 
-To create controlled market environments, we generate synthetic price series using:
+```
+GBM (TRENDING MARKET):
+Mean Reversion - Sharpe: 0.00  | Max DD: 0.00%  | Trades: 0
+Momentum       - Sharpe: -24.41 | Max DD: -0.78% | Trades: 6
+Winner: Mean Reversion (avoided unfavorable regime)
 
-Geometric Brownian Motion (GBM)
-
-Models trending markets with drift and volatility
-
-Baseline environment for momentum strategies
-
-Ornstein–Uhlenbeck (OU) Process
-
-Canonical mean-reverting process
-
-Ideal for testing mean reversion logic
-
-Regime-Switching Model
-
-Two-state Markov process alternating between:
-
-Trending (GBM-like)
-
-Mean-reverting (OU-like)
-
-Mimics realistic market regime changes
-
-Synthetic data provides ground-truth regimes, allowing us to verify whether strategy behavior aligns with theory before testing on real markets.
+OU (MEAN-REVERTING MARKET):
+Mean Reversion - Sharpe: -0.95 | Max DD: -4.74% | Trades: 24
+Momentum       - Sharpe: -6.82 | Max DD: -1.41% | Trades: 10
+Winner: Mean Reversion (smaller drawdown, higher Sharpe)
+```
 
 ---
 
-## Experimental Design
+## Key Insights
 
-Synthetic Experiments
-
-Run both strategies on simulated price paths
-
-Vary drift, volatility, and mean-reversion speed
-
-Analyze returns, risk, and drawdowns by regime
-
-Real-World Validation
-
-Apply identical strategies to real assets
-
-Compare results to buy-and-hold benchmarks
-
-Regime-Based Analysis
-
-Examine performance conditional on regime
-
-Study drawdowns during regime transitions
-
----
-
-## Evaluation Metrics
-
-Each strategy is evaluated using:
-
-- Annualized Return
-
-- Annualized Volatility
-
-- Sharpe Ratio
-
-- Maximum Drawdown
-
-- Calmar Ratio
-
-- Win Rate
-
-- Average Trade Duration
-
-- Trade Count
-
-Results are presented via equity curves, drawdown plots, and comparison tables.
+1. **No universal winner**: Strategy performance is regime-dependent
+2. **Mean reversion**: Excels in range-bound, oscillating markets
+3. **Momentum**: Excels in trending markets (though needs longer trends)
+4. **Drawdowns matter**: Risk-adjusted returns > raw returns
+5. **Synthetic validation**: Controlled experiments reveal strategy logic
 
 ---
 
 ## Tech Stack
 
-Python
-
-NumPy, pandas, matplotlib
-
-Custom backtesting framework
-
-No machine learning — rules only
+- Python 3.8+, NumPy, pandas, matplotlib
+- Custom backtesting engine
+- No machine learning (pure rules-based)
+- Production-quality code structure
 
 ---
 
-## Key Takeaways
+## Educational Value
 
-Strategy performance is regime-dependent
-
-Mean reversion and momentum succeed under different assumptions
-
-Drawdowns often reveal more than raw returns
-
-Synthetic data is a powerful tool for validating strategy logic
-
-Understanding when a strategy fails is as important as knowing when it works.
+Perfect for:
+- Finance students learning quantitative methods
+- Portfolio managers exploring strategy fundamentals  
+- Aspiring quants building backtesting frameworks
+- Anyone interested in systematic trading
 
 ---
 
-## Future Extensions
+## Extending This Project
 
-Volatility targeting and position sizing
+1. Add real market data (SPY, QQQ, BTC)
+2. Implement regime detection algorithms
+3. Build adaptive strategies that switch based on regime
+4. Add short positions and risk management
+5. Optimize parameters via walk-forward analysis
 
-Transaction cost sensitivity analysis
+---
 
-Regime detection using observable market features
+## Documentation
 
-Portfolio-level combinations of strategies
+- `docs/week2-report.md` - Detailed methodology and results
+- `notebooks/` - Interactive walkthroughs
+- Inline code comments throughout
+
+---
+
+## Installation & Testing
+
+```bash
+# Install
+pip install -r requirements.txt
+
+# Test
+python tests/test_indicators.py
+
+# Generate data
+python -m src.sims.brownian --years 15
+
+# Full demo
+python demo.py
+```
+
+---
+
+**Remember**: This is educational. Past performance ≠ future results. Not investment advice.
+
+Built with ❤️ for quantitative finance education
